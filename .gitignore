@@ -1,0 +1,29 @@
+# Visual Studio
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+*.cache
+*.vs/
+
+# .NET
+*.pdb
+*.mdb
+*.log
+
+# NuGet
+packages/
+*.nupkg
+
+# Publish folder
+Publish/
+
+# Temporary files
+~$*
+
+# User-specific files
+*.user
+*.userprefs
+
+# NuGet package cache
+_ NuGet
