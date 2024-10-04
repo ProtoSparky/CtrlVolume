@@ -1,5 +1,6 @@
 # CtrlVolume
 Adjust non-default audio output via Ctrl + Volume keys
+
 <img src = "./readme_assets/animation.gif" style="width:300px">
 
 ## Usage instructions
