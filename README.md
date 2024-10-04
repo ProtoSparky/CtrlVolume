@@ -1,6 +1,6 @@
 # CtrlVolume
 Adjust non-default audio output via Ctrl + Volume keys
-<img src = "./readme_assets/animation.gif" style="position:relative;transform:translate(-50%,0);left:50%">
+<img src = "./readme_assets/animation.gif" style="width:300px">
 
 ## Usage instructions
 * Run the program for the first time. You'll select your second device, and it'll generate a save file. Close the program
