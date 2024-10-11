@@ -4,7 +4,17 @@ using NAudio.CoreAudioApi;
 using System.IO;
 using System.Text.Json;
 using System.Runtime.InteropServices;
-using System.Threading; 
+using System.Threading;
+using System.Windows.Forms;
+using System.Drawing;
+using System.Diagnostics;
+
+
+static class Globals
+{
+    public static bool FailedSetup = false; //if the setup fails, this gets flagged as true
+    public static bool NeedsSetup = false;
+}
 namespace CtrlVolume
 {
     internal class Program
@@ -18,26 +28,37 @@ namespace CtrlVolume
             var FileOps = new FileOperations();            
             if (!FileOps.CheckFile(DefaultSettingsPath))
             {
-                Console.WriteLine("File does not exist. Starting setup!");                
-                generic.AskUserForDevice();                
-            }
-            var Updated_Settings = FileOps.ReadFile<Settings>(DefaultSettingsPath);
-            if(Updated_Settings.CtrlFriendlyName == "" || Updated_Settings.CtrlFriendlyName == " ")
-            {
-                //checks if file is invalid and then starts the setup again.
+                Globals.NeedsSetup = true; 
                 generic.AskUserForDevice();
             }
-            Console.WriteLine("CtrlVolume is now active"); 
-            var vol_monitor = new Monitor();
-            vol_monitor.VolumeChange(); 
+            else if(FileOps.ReadFile<Settings>(DefaultSettingsPath).CtrlFriendlyName == "" || FileOps.ReadFile<Settings>(DefaultSettingsPath).CtrlFriendlyName == " ")
+            {
+                //checks if file is invalid and then starts the setup again.
+                Globals.NeedsSetup = true;
+                generic.AskUserForDevice();
+            }
 
+            if (!Globals.NeedsSetup)
+            {
+                //only start the volume monitor if there are no erros in the setup
+                Thread NotificationThread = new Thread(generic.SpawnNotification);
+                //start volume monitor and notification in different threads so both can run simultaniously
+                var vol_monitor = new Monitor();
+                Thread Monitor = new Thread(vol_monitor.VolumeChange);
+                NotificationThread.Start();
+                Monitor.Start();
+
+            }
+            else
+            {
+                MessageBox.Show("The setup was not completed.\nCtrlVolume will not work without being set up.\nThe setup will start the next time you launch the program.");
+            }
 
         }
     }
     public class GetDevices
     {
         private MMDeviceEnumerator _enumerator;
-
         public GetDevices()
         {
             _enumerator = new MMDeviceEnumerator(); //make an enumerator all methods can use in GetDevices so i wouldnt have to define them for every method || var enumerator = new MMDeviceEnumerator(); removed from all methods
@@ -115,7 +136,7 @@ namespace CtrlVolume
     {
         public bool CheckFile(string FilePath)
         {
-            return File.Exists(FilePath);
+            return File.Exists(FilePath); //checks if the file/directory exists
         }
         public void WriteFile(string FilePath, object Data)
         {
@@ -125,6 +146,10 @@ namespace CtrlVolume
         public T ReadFile<T>(string FilePath)
         {
             string JsonString = File.ReadAllText(FilePath);
+            if(JsonString == "")
+            {
+                JsonString = "{\"CtrlFriendlyName\":\"\"}";
+            }
             return JsonSerializer.Deserialize<T>(JsonString);
         }
     }
@@ -139,60 +164,12 @@ namespace CtrlVolume
             var devices = new GetDevices();
             devices.All(out List<string> AllAudioDevices);
             devices.Default(out string DefaultAudioDevice);
-            Console.WriteLine("==============================================================================");
-            Console.WriteLine("Type the number of the secondary device you want to control with the ctrl key");
-            Console.WriteLine("------------------------------------------------------------------------------");
-            int pointer = 0;
             //subtract default device
-            AllAudioDevices.Remove(DefaultAudioDevice); 
-            foreach (var SelectOutputDevice in AllAudioDevices)
-            {
-                Console.WriteLine(pointer.ToString() + " | " + SelectOutputDevice);
-                pointer++; 
-            }
-            Console.WriteLine("-------------------------------------------------------------------------------");
-            if (AllAudioDevices.Count == 1)
-            {
-                Console.WriteLine("You have one device available. Type 0 to select it");
-            }
-            else
-            {
-                Console.WriteLine("Enter number (0-" + (AllAudioDevices.Count -1).ToString() + ")");
-            }
-            string UserInput = Console.ReadLine();
-            int failed_pointer = 0;
-            for (int p2 = 0; p2 < pointer; p2++)
-            {
-                if(UserInput == p2.ToString())
-                {
-                    //input valid
-                    
-                    var FileOps = new FileOperations();
-                    Settings settings = new Settings
-                    {
-                        CtrlFriendlyName = AllAudioDevices[Convert.ToInt32(UserInput)]
-                    };
-                    var generic = new Generic();
-                    generic.SettingsPath(out string DefaultSettingsPath); //get path for settings file
-                    FileOps.WriteFile(DefaultSettingsPath, settings);
-                    Console.Clear();
-                    Console.WriteLine("Settings written to settings file at  '" + DefaultSettingsPath + "'");
-                    Console.WriteLine("CtrlVolume is now active on '" + AllAudioDevices[Convert.ToInt32(UserInput)] + "'");
-                    Console.WriteLine("Set this application to automatically start on startup, and enjoy :3");
+            AllAudioDevices.Remove(DefaultAudioDevice);
 
-                }
-                else
-                {
-                    failed_pointer++; 
-                }
-            }
-            if(failed_pointer == pointer)
-            {
-                //input not valid
-                Console.Clear();
-                Console.WriteLine("input Wrong!" + "\nValid Inputs are: 0-" + pointer);
-                AskUserForDevice();
-            }
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new SetupForm(AllAudioDevices));
 
         }
         public void SettingsPath(out string DefaultSettingsPath)
@@ -205,8 +182,36 @@ namespace CtrlVolume
             else if (val.CompareTo(max) > 0) return max;
             else return val;
         }
+        public void SpawnNotification()
+        {
 
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            NotifyIcon notifyIcon = new NotifyIcon();//new notification icon
+            notifyIcon.Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath); //use the same icon as the application uses but now for the notification icon
+            notifyIcon.ContextMenuStrip = new ContextMenuStrip();
+            notifyIcon.ContextMenuStrip.Items.Add("Stop CtrlVolume", null, (sender, e) =>
+            {
+                // Clean up and close the application.
+                notifyIcon.Dispose();
+                Application.Exit();
+                Environment.Exit(0);
+            });
+            notifyIcon.ContextMenuStrip.Items.Add("Open Settings file", null, (sender, e) =>
+            {
+                SettingsPath(out string DefaultSettingsPath);
+                Process.Start(@"" + Environment.CurrentDirectory + "\\" + DefaultSettingsPath.Remove(0, 1));
+            });
+            notifyIcon.ContextMenuStrip.Items.Add("Made with ❤ by Sparky", null, (sender,e)=>
+            {
+                Process.Start("https://protosparky.uk"); //open url in browser
+            });
+            notifyIcon.Text = "CtrlVolume is active";
+            notifyIcon.Visible = true;
+            Application.Run();
+        }
     }
+    
     public class Monitor
     {
         [DllImport("user32.dll")]
@@ -281,13 +286,11 @@ namespace CtrlVolume
                         Console.WriteLine("One or more of the configured audio devices do not exist. Skipping volume adjustment!"); 
                     }
                     deviceExists = true; 
-
                 }
                 else
                 {
                     ctrlPressed = false; 
                 }
-
                 Thread.Sleep(50);
             }
         }

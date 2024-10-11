@@ -9,12 +9,15 @@ Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
+		SilentRunner|Any CPU = SilentRunner|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{93ED3F02-12E9-42FA-BF52-C9CCCDE4EF3A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{93ED3F02-12E9-42FA-BF52-C9CCCDE4EF3A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{93ED3F02-12E9-42FA-BF52-C9CCCDE4EF3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{93ED3F02-12E9-42FA-BF52-C9CCCDE4EF3A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{93ED3F02-12E9-42FA-BF52-C9CCCDE4EF3A}.Debug|Any CPU.ActiveCfg = Release|Any CPU
+		{93ED3F02-12E9-42FA-BF52-C9CCCDE4EF3A}.Debug|Any CPU.Build.0 = Release|Any CPU
+		{93ED3F02-12E9-42FA-BF52-C9CCCDE4EF3A}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{93ED3F02-12E9-42FA-BF52-C9CCCDE4EF3A}.Release|Any CPU.Build.0 = Debug|Any CPU
+		{93ED3F02-12E9-42FA-BF52-C9CCCDE4EF3A}.SilentRunner|Any CPU.ActiveCfg = Debug|Any CPU
+		{93ED3F02-12E9-42FA-BF52-C9CCCDE4EF3A}.SilentRunner|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
