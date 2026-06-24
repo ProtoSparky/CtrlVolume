@@ -16,6 +16,9 @@ Adjust non-default audio output via Ctrl + Volume keys
 * You cannot lower the volume if the main device volume is at 0%. The same goes for the opposite, you cannot increase the secondary device volume if the main one is above 99%. 
 
 ## Update Notes
+#### v1.2.0-beta
+* Lowering the secondary audio device volume to 0 would make windows mute it automatically, which upon being raised again kept it muted. This is now fixed.
+
 #### v1.1.0-beta
 * Added icons
 * Rewrote the setup to use GUI environment
