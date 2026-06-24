@@ -252,14 +252,21 @@ namespace CtrlVolume
                         int VolumeChange = (int)(Math.Round(PreviousDefaultDeviceVolume, 0) - Math.Round(CurrentDefaultDeviceVolume, 0));
                         VolumeChange = VolumeChange * -1;
                         if (deviceExists) { volume.WriteVolume(DefaultAudioDevice, CurrentDefaultDeviceVolume - VolumeChange); }//freeze default audio device if it exists
-                        volume.GetVolume(SelectedAudioDevice, out float SelectedAudioDeviceVolume); //get volume of selected device
+                        ;volume.GetVolume(SelectedAudioDevice, out float SelectedAudioDeviceVolume); //get volume of selected device
                         if(SelectedAudioDeviceVolume == -1) { deviceExists = false; }//set device flag as not false if any of the audio output devices cannot be found
                         int SelectedVolume = (int)Math.Round(SelectedAudioDeviceVolume, 0) + VolumeChange; //convert to int and apply volume change
                         SelectedVolume = GenericOPs.Clamp(SelectedVolume, 0, 100);
                         if (deviceExists) { volume.WriteVolume(SelectedAudioDevice, SelectedVolume); } //write new volume to the selected audio device
+
+                        volume.MuteUnmuteDevice(SelectedAudioDevice, false);
+                        volume.MuteUnmuteDevice(SelectedAudioDevice, false);
+                        volume.MuteUnmuteDevice(SelectedAudioDevice, false);
+
+                        // Debug.WriteLine("up");
                     }
                     else if (PreviousDefaultDeviceVolume > CurrentDefaultDeviceVolume)
                     {
+                        // Debug.WriteLine("down");
                         int VolumeChange = (int)(Math.Round(PreviousDefaultDeviceVolume, 0) - Math.Round(CurrentDefaultDeviceVolume, 0));
                         VolumeChange = VolumeChange * -1;
 
@@ -285,7 +292,8 @@ namespace CtrlVolume
                     {
                         Console.WriteLine("One or more of the configured audio devices do not exist. Skipping volume adjustment!"); 
                     }
-                    deviceExists = true; 
+                    deviceExists = true;
+            
                 }
                 else
                 {
